@@ -256,36 +256,3 @@ public class SHA256 {
 
 
 }
-
-
-class BitIterator512 implements Iterator<byte[]> {
-    private final byte[] bytes;
-    private int position = 0;
-
-    public BitIterator512(byte[] bytes) {
-        this.bytes = bytes;
-
-    }
-
-    @Override
-    public boolean hasNext() {
-        return position < bytes.length;
-    }
-
-
-    @Override
-    public byte[] next() {
-        if (hasNext()) {
-            byte[] next = Arrays.copyOfRange(this.bytes, position, position + 64);// 64 bytes = 512 bits
-            position += 64;
-            return next;
-        } else {
-            throw new NoSuchElementException();
-        }
-    }
-
-    @Override
-    public void remove() {
-        throw new UnsupportedOperationException();
-    }
-}

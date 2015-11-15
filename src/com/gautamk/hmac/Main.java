@@ -1,27 +1,76 @@
 package com.gautamk.hmac;
 
-import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
 
 public class Main {
+    private static boolean compare(byte[] a, byte[] b) {
 
-    public static void main(String[] args) {
+        if (a.length != b.length) {
+            return false;
+        }
+        for (int i = 0; i < a.length; i++) {
+            if (a[i] != b[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static void test(boolean print) {
+        SecureRandom secureRandom = new SecureRandom();
+        MessageDigest instance = null;
         try {
-            String test = "TestString";
-            byte[] digest = SHA256.digest(test);
-            String myResult = Util.bytesToHex(digest);
-            System.out.println("MyResult: " + myResult);
-
-            MessageDigest inbuiltSha256 = MessageDigest.getInstance("SHA-256");
-            String inbuiltResult = Util.bytesToHex(inbuiltSha256.digest(test.getBytes()));
-            System.out.println("InbuiltResult: " + inbuiltResult);
-
-            System.out.println("MyResult == InbuiltResult: " + myResult.equals(inbuiltResult));
-        } catch (IOException e) {
-            e.printStackTrace();
+            instance = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
+        }
+        long l = System.currentTimeMillis();
+        for (int i = 0; i < 1000; i++) {
+            byte[] d = new byte[secureRandom.nextInt(i + 10000)];
+            secureRandom.nextBytes(d);
+            if (print) {
+                System.out.println("Testing ");
+                System.out.println(Util.bytesToHex(d));
+            }
+
+            byte[] myDigest = SHA256.digest(d);
+            byte[] inbuiltDigest = instance.digest(d);
+
+            if (print) {
+                System.out.print("My Digest ");
+                System.out.println(Util.bytesToHex(myDigest));
+                System.out.print("Inbuilt Digest ");
+                System.out.println(Util.bytesToHex(inbuiltDigest));
+            }
+            if (!compare(myDigest, inbuiltDigest)) {
+                System.out.println("Test FAILED !!");
+                if (!print) {
+                    System.out.println("Testing ");
+                    System.out.println(Util.bytesToHex(d));
+                    System.out.print("My Digest ");
+                    System.out.println(Util.bytesToHex(myDigest));
+                    System.out.print("Inbuilt Digest ");
+                    System.out.println(Util.bytesToHex(inbuiltDigest));
+                }
+                return;
+            }
+        }
+        System.out.println("Testing SHA256 Successful in " + (System.currentTimeMillis() - l) + "ms");
+    }
+
+    public static void main(String[] args) {
+        switch (args[0].toLowerCase()) {
+            case "test":
+                test(false);
+                break;
+            case "vtest":
+            case "verbosetest":
+            case "printtest":
+                test(true);
+                break;
+
         }
     }
 }
