@@ -166,20 +166,83 @@ public class SHA256 {
                 ^ X >>> 10;
     }
 
-    public static byte[] digest(byte[] message) {
-        byte[] paddedMessage = applyPadding(message);
-        BitIterator512 bitIterator512 = new BitIterator512(paddedMessage);
-
-        // Initialize registers
-        int[] h = Arrays.copyOf(H, H.length);
-
-        while (bitIterator512.hasNext()) {
-            byte[] next = bitIterator512.next();
-
+    /**
+     * @return
+     */
+    private static int[] initWords(byte[] message) {
+        int[] words = new int[64];
+        for (int i = 0; i < 16; i++) {
+            byte[] word = new byte[4]; // 32 bits = 4 bytes
+            System.arraycopy(message, 4 * i, word, 0, 4); // Copy 4 bytes
+            words[i] = Util.fromByteArray(word);
         }
-        return message;
+
+        // Wi = σ1(W i−2 ) + W i−7 + σ0(W i−15 ) + W i−16 for 17 ≤ i ≤ 64.
+        for (int i = 16; i < 64; i++) {
+            words[i] = lSigma1(words[i - 2])
+                    + words[i - 7]
+                    + lSigma0(words[i - 15])
+                    + words[i - 16];
+        }
+        return words;
     }
 
+    public static byte[] digest(byte[] message) {
+        byte[] paddedMessage = applyPadding(message);
+        int[] h = Arrays.copyOf(H, H.length);
+        byte[] resultBlock = new byte[32];
+        for (int i = 0; i < paddedMessage.length / 64; i++) {
+            int[] registers = Arrays.copyOf(h, h.length);
+
+            byte[] currentBlock = new byte[64];
+            System.arraycopy(paddedMessage, 64 * i, currentBlock, 0, 64);
+
+            int[] words = initWords(currentBlock);
+
+            for (int j = 0; j < 64; j++) {
+                registers = iterate(registers, words, j);
+            }
+
+            for (int j = 0; j < h.length; ++j) {
+                h[j] += registers[j];
+            }
+        }
+        for (int i = 0; i < h.length; i++) {
+            System.arraycopy(Util.toByteArray(h[i]), 0, resultBlock, 4 * i, 4);
+        }
+
+        return resultBlock;
+    }
+
+    private static int[] iterate(int[] registers, int[] words, int i) {
+        int a = registers[0];
+        int b = registers[1];
+        int c = registers[2];
+        int d = registers[3];
+        int e = registers[4];
+        int f = registers[5];
+        int g = registers[6];
+        int h = registers[7];
+
+        // T1 = h + Σ1(e) + Ch(e, f, g) + K[i] + W[i]
+        int T1 = h + uSigma1(e) + Ch(e, f, g) + K[i] + words[i];
+
+        // T2 = Σ0(a) + Maj(a, b, c)
+        int T2 = uSigma0(a) + Maj(a, b, c);
+
+        h = g;
+        g = f;
+        f = e;
+        e = d + T1;
+        d = c;
+        c = b;
+        b = a;
+        a = T1 + T2;
+        return new int[]{
+                a, b, c, d, e, f, g, h
+        };
+
+    }
 
     public static byte[] digest(File file) throws IOException {
         FileInputStream stream = new FileInputStream(file);
