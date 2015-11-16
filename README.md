@@ -15,3 +15,5 @@ from [Wikipedia](https://en.wikipedia.org/wiki/SHA-2)
 ## Implementation
 
 [HMAC.java](src/com/gautamk/hmac/HMAC.java)
+
+[SHA256.java](src/com/gautamk/hmac/SHA256.java)
