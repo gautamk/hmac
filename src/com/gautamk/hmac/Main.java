@@ -88,7 +88,8 @@ public class Main {
             } catch (NoSuchAlgorithmException | InvalidKeyException e) {
                 e.printStackTrace();
                 return;
-            } catch (IllegalArgumentException ignored) {}
+            } catch (IllegalArgumentException ignored) {
+            }
         }
         System.out.println("Test HMAC Success !!");
     }
@@ -130,6 +131,7 @@ public class Main {
                 }
                 break;
             case "filehmac":
+            default:
                 keyfilename = args[1];
                 messagefilename = args[2];
                 outputfilename = args[3];
