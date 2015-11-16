@@ -1,62 +1,49 @@
 package com.gautamk.hmac;
 
-import java.nio.ByteBuffer;
-
 /**
  * Created by gautam on 11/15/15.
  */
 public class HMAC {
-    private static final byte[] IPAD_BYTES = new byte[]{
-            0b00110110,
-            0b00110110,
-            0b00110110,
-            0b00110110,
-            0b00110110,
-            0b00110110,
-            0b00110110,
-            0b00110110
-    };
+    private static int BLOCK_SIZE = 64;
+    private static final byte[] IPAD = new byte[BLOCK_SIZE];
+    private static final byte[] OPAD = new byte[BLOCK_SIZE];
 
-    private static final byte[] OPAD_BYTES = new byte[]{
-            0b01011100,
-            0b01011100,
-            0b01011100,
-            0b01011100,
-            0b01011100,
-            0b01011100,
-            0b01011100,
-            0b01011100
-    };
-    private static final long IPAD = ByteBuffer.wrap(IPAD_BYTES).getLong();
-    private static final long OPAD = ByteBuffer.wrap(OPAD_BYTES).getLong();
+    static {
+        for (int i = 0; i < BLOCK_SIZE; i++) {
+            IPAD[i] = 0b00110110;
+            OPAD[i] = 0b01011100;
+        }
+    }
 
     private static byte[] padKey(byte[] key) {
-        final int maxLength = IPAD_BYTES.length;
-        byte[] paddedKey = new byte[maxLength];
-        if (key.length < maxLength) {
-            final int requiredZeroBytes = maxLength - key.length;
+
+        byte[] paddedKey = new byte[BLOCK_SIZE];
+        if (key.length > BLOCK_SIZE) {
+            key = SHA256.digest(key);
+        }
+        if (key.length < BLOCK_SIZE) {
+            final int requiredZeroBytes = BLOCK_SIZE - key.length;
             byte[] zeroBytes = new byte[requiredZeroBytes];
             for (int i = 0; i < requiredZeroBytes; i++) {
                 zeroBytes[i] = 0b00000000;
             }
-            paddedKey = Util.concat(zeroBytes, key);
-        } else {
-            System.arraycopy(key, 0, paddedKey, 0, maxLength);
+            paddedKey = Util.concat(key, zeroBytes);
+        }
+
+        if (key.length == BLOCK_SIZE) {
+            paddedKey = key;
         }
         return paddedKey;
     }
 
     public static byte[] HMAC(byte[] key, byte[] message) {
-        long paddedKey = ByteBuffer.wrap(padKey(key)).getLong();
+        byte[] paddedKey = padKey(key);
 
-        long ipadXorKey = IPAD ^ paddedKey;
-        long opadXorKey = OPAD ^ paddedKey;
+        byte[] ipadXorKey = Util.xor(IPAD, paddedKey);
+        byte[] opadXorKey = Util.xor(OPAD, paddedKey);
 
-        byte[] ipadXorKeyBytes = ByteBuffer.allocate(8).putLong(ipadXorKey).array();
-        byte[] opadXorKeyBytes = ByteBuffer.allocate(8).putLong(opadXorKey).array();
-
-        byte[] iPadDigest = SHA256.digest(Util.concat(ipadXorKeyBytes, message));
-        byte[] hmac = SHA256.digest(Util.concat(opadXorKeyBytes, iPadDigest));
+        byte[] iPadDigest = SHA256.digest(Util.concat(ipadXorKey, message));
+        byte[] hmac = SHA256.digest(Util.concat(opadXorKey, iPadDigest));
 
         return hmac;
     }

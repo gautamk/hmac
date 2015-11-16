@@ -2,7 +2,7 @@ package com.gautamk.hmac;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 /**
@@ -69,14 +69,26 @@ public class Util {
         return new String(hexChars);
     }
 
-    public static byte[] bytesFromFile(File file) throws FileNotFoundException {
+    public static byte[] bytesFromFile(File file) throws IOException {
         FileInputStream stream = new FileInputStream(file);
-        return new byte[(int) file.length()];
+        byte[] bytes = new byte[(int) file.length()];
+        stream.read(bytes);
+        return bytes;
     }
 
-    public static byte[] bytesFromFile(String filename) throws FileNotFoundException {
+    public static byte[] bytesFromFile(String filename) throws IOException {
         File file = new File(filename);
         return bytesFromFile(file);
+    }
+
+    public static byte[] xor(byte[] a, byte[] b) {
+        byte[] result = new byte[Math.min(a.length, b.length)];
+
+        for (int i = 0; i < result.length; i++) {
+            result[i] = (byte) (((int) a[i]) ^ ((int) b[i]));
+        }
+
+        return result;
     }
 
 }
