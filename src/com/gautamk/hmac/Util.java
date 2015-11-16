@@ -1,5 +1,8 @@
 package com.gautamk.hmac;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.nio.ByteBuffer;
 
 /**
@@ -66,5 +69,14 @@ public class Util {
         return new String(hexChars);
     }
 
+    public static byte[] bytesFromFile(File file) throws FileNotFoundException {
+        FileInputStream stream = new FileInputStream(file);
+        return new byte[(int) file.length()];
+    }
+
+    public static byte[] bytesFromFile(String filename) throws FileNotFoundException {
+        File file = new File(filename);
+        return bytesFromFile(file);
+    }
 
 }

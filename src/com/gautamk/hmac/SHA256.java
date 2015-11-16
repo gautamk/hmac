@@ -1,11 +1,6 @@
 package com.gautamk.hmac;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.util.Arrays;
-import java.util.Iterator;
-import java.util.NoSuchElementException;
 
 /**
  * Created by gautam on 11/14/15.
@@ -242,16 +237,6 @@ public class SHA256 {
                 a, b, c, d, e, f, g, h
         };
 
-    }
-
-    public static byte[] digest(File file) throws IOException {
-        FileInputStream stream = new FileInputStream(file);
-        byte[] data = new byte[(int) file.length()];
-        return digest(data);
-    }
-
-    public static byte[] digest(String message) throws IOException {
-        return digest(message.getBytes());
     }
 
 

@@ -1,5 +1,7 @@
 package com.gautamk.hmac;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -61,7 +63,13 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        switch (args[0].toLowerCase()) {
+        String command;
+        try {
+            command = args[0].toLowerCase();
+        } catch (ArrayIndexOutOfBoundsException e) {
+            command = "hmacfile";
+        }
+        switch (command) {
             case "test":
                 test(false);
                 break;
@@ -73,7 +81,25 @@ public class Main {
             case "hmac":
                 byte[] hmac = HMAC.HMAC(args[1].getBytes(), args[2].getBytes());
                 System.out.println(Util.bytesToHex(hmac));
+                break;
 
+            case "filehmac":
+                String keyfilename = args[1];
+                String messagefilename = args[2];
+                String outputfilename = args[3];
+                try {
+                    byte[] key = Util.bytesFromFile(keyfilename);
+                    byte[] message = Util.bytesFromFile(messagefilename);
+                    byte[] hmac1 = HMAC.HMAC(key, message);
+                    String hex = Util.bytesToHex(hmac1);
+                    System.out.println(hex);
+                    FileOutputStream fileOutputStream = new FileOutputStream(outputfilename);
+                    fileOutputStream.write(hex.getBytes());
+                    fileOutputStream.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                break;
         }
     }
 }
