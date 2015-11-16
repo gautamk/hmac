@@ -66,10 +66,13 @@ public class Main {
                 test(false);
                 break;
             case "vtest":
-            case "verbosetest":
-            case "printtest":
                 test(true);
                 break;
+            case "sha256":
+                break;
+            case "hmac":
+                byte[] hmac = HMAC.HMAC(args[1].getBytes(), args[2].getBytes());
+                System.out.println(Util.bytesToHex(hmac));
 
         }
     }
